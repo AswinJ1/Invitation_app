@@ -38,7 +38,7 @@ const CertificateFormContainer = () => {
           <h1 className="text-3xl font-bold text-black mb-2 drop-shadow-lg">
            Verify Invitation          </h1>
           <p className="text-black text-opacity-90">
-            Enter your details to verify and download your certificate
+            Enter your details to verify and download your Invitation Card
           </p>
         </motion.div>
 
