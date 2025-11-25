@@ -36,9 +36,7 @@ async function getParticipants(): Promise<any[]> {
 
 const formSchema = z.object({
   username: z.string().min(1, "Full name is required"),
-  // rollno: z.string().min(1, "Roll number is required"),
   teamName: z.string().min(1, "Team name is required"),
-
 })
 
 type ActionResponse = {
@@ -49,7 +47,6 @@ type ActionResponse = {
 
 export async function verifyAndGenerateCertificate(data: {
   username: string;
-  // rollno: string;
   teamName: string;
 }): Promise<ActionResponse> {
   try {
@@ -60,13 +57,12 @@ export async function verifyAndGenerateCertificate(data: {
     const fontPath = path.resolve(process.cwd(), 'public', 'fonts', 'Acumin-BdPro.otf');
 
     // Verify participant using cached data
-    const isValidParticipant = await verifyParticipant(
+    const participantData = await verifyParticipant(
       data.username,
-      // data.rollno,  
       data.teamName
     );
     
-    if (!isValidParticipant) {
+    if (!participantData) {
       return {
         success: false,
         message: "Participant details not found in registered participants list"
@@ -85,7 +81,7 @@ export async function verifyAndGenerateCertificate(data: {
     const page = pdfDoc.getPages()[0];
     const { width, height } = page.getSize();
     
-    // Proper case formatting for the name
+    // Format team name (ALL UPPERCASE)
     const formatName = (teamName: string) => {
       return teamName
         .trim()
@@ -94,9 +90,20 @@ export async function verifyAndGenerateCertificate(data: {
         .join(' ');
     };
     
+    // Format college name (Title Case)
+    const formatCollegeName = (collegeName: string) => {
+      return collegeName
+        .trim()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+    }
+    
+    // Get college name from Excel data
+    const formattedCollegeName = formatCollegeName(participantData.collegeName || '');
     const formattedteamName = formatName(data.teamName);
     
-    // Dynamic font size calculation
+    // Dynamic font size calculation for team name
     const maxNameWidth = width * 0.7;
     let nameFontSize = 40;
     let nameWidth = font.widthOfTextAtSize(formattedteamName, nameFontSize);
@@ -106,11 +113,28 @@ export async function verifyAndGenerateCertificate(data: {
       nameWidth = font.widthOfTextAtSize(formattedteamName, nameFontSize);
     }
     
+    // Dynamic font size calculation for college name
+    const maxCollegeNameWidth = width * 0.7;
+    let collegeNameFontSize = 30;
+    let collegeNameWidth = font.widthOfTextAtSize(formattedCollegeName, collegeNameFontSize);
+    
+    while (collegeNameWidth > maxCollegeNameWidth && collegeNameFontSize > 20) {
+      collegeNameFontSize -= 1;
+      collegeNameWidth = font.widthOfTextAtSize(formattedCollegeName, collegeNameFontSize);
+    }
+    
     const nameConfig = {
       text: formattedteamName,
       fontSize: nameFontSize,
       y: height * 0.68,
       xOffset: -25
+    };
+    
+    const collegeNameConfig = {
+      text: formattedCollegeName,
+      fontSize: collegeNameFontSize,
+      y: height * 0.65, // Below the team name
+      xOffset: 0
     };
 
     const drawCenteredText = (config: { text: string, fontSize: number, y: number, xOffset?: number }) => {
@@ -127,6 +151,7 @@ export async function verifyAndGenerateCertificate(data: {
     };
 
     drawCenteredText(nameConfig);
+    drawCenteredText(collegeNameConfig);
 
     const modifiedPdfBytes = await pdfDoc.save();
     const base64PDF = Buffer.from(modifiedPdfBytes).toString('base64');
@@ -146,31 +171,34 @@ export async function verifyAndGenerateCertificate(data: {
   }
 }
 
-async function verifyParticipant(username: string, teamName: string): Promise<boolean> {
+// Returns participant data if found, null otherwise
+async function verifyParticipant(username: string, teamName: string): Promise<any | null> {
   try {
     const participants = await getParticipants();
     
     const normalizeUserName = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
     const normalizeTeamName = (str: string) => str.trim().toLowerCase().replace(/\s+/g, ' ');
     
-    const found = participants.some((p: any) => {
+    const found = participants.find((p: any) => {
       const matchUserName = normalizeUserName(p.username?.toString() || '') === normalizeUserName(username);
-      // const matchRollNo = p.rollno?.toString().trim().toLowerCase() === rollno.trim().toLowerCase();
       const matchTeamName = normalizeTeamName(p.teamName?.toString() || '') === normalizeTeamName(teamName);
       
-      // All three must match
       const isMatch = matchUserName && matchTeamName;
       
       // Log matching attempts for debugging
       if (matchUserName && !matchTeamName) {
-        console.log("⚠️ Name match but email doesn't:", {
+        console.log("⚠️ Name match but team name doesn't:", {
           excelTeamName: p.teamName,
           inputTeamName: teamName
         });
       }
       
       if (isMatch) {
-        console.log("✅ Participant verified:", { username: p.username, teamName: p.teamName });
+        console.log("✅ Participant verified:", { 
+          username: p.username, 
+          teamName: p.teamName,
+          collegeName: p.collegeName 
+        });
       }
       
       return isMatch;
@@ -178,11 +206,12 @@ async function verifyParticipant(username: string, teamName: string): Promise<bo
 
     if (!found) {
       console.log("❌ No matching participant found for:", { username, teamName });
+      return null;
     }
 
     return found;
   } catch (error) {
     console.error("Error verifying participant:", error);
-    return false;
+    return null;
   }
 }
