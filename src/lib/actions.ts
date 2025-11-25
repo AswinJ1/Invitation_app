@@ -53,7 +53,7 @@ export async function verifyAndGenerateCertificate(data: {
     console.log("Verifying participant:", data);
 
     // Remove redundant file access checks - only check once
-    const templatePath = path.resolve(process.cwd(), "public", "invite.pdf");
+    const templatePath = path.resolve(process.cwd(), "public", "new_2.pdf");
     const fontPath = path.resolve(process.cwd(), 'public', 'fonts', 'Acumin-BdPro.otf');
 
     // Verify participant using cached data
@@ -126,14 +126,14 @@ export async function verifyAndGenerateCertificate(data: {
     const nameConfig = {
       text: formattedteamName,
       fontSize: nameFontSize,
-      y: height * 0.68,
+      y: height * 0.72,
       xOffset: -25
     };
     
     const collegeNameConfig = {
       text: formattedCollegeName,
       fontSize: collegeNameFontSize,
-      y: height * 0.65, // Below the team name
+      y: height * 0.69, // Below the team name
       xOffset: 0
     };
 
