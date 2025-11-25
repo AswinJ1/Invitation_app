@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model DownloadCount {
+  id        String   @id @default(cuid())
+  email     String
+  name      String
+  rollno    String
+  count     Int      @default(0)
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@unique([email, name, rollno])
+  @@map("downloadcount") // Actual table name in DB
+}
