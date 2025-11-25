@@ -103,19 +103,19 @@ export function CertificateForm() {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-black">Name</FormLabel>
+              <FormLabel className="text-black">ICPC User Name</FormLabel>
               <FormControl>
                 <div className="relative">
                   <UserRound className="absolute left-3 top-3 h-4 w-4 text-black/60" />
                   <Input 
-                    placeholder="John" 
+                    placeholder="icpcpr25XXXX" 
                     {...field} 
                     className="w-full pl-10 py-2 bg-transparent border border-black/20 rounded-md text-black placeholder:text-black/50 focus:outline-none focus:border-blue-400 focus:ring-2" 
                   />
                 </div>
               </FormControl>
               <FormDescription className="text-black/70 text-xs">
-                Enter your name exactly as registered for the event.
+                Enter your ICPC User Name exactly as registered.
               </FormDescription>
               <FormMessage className="text-red-600" />
             </FormItem>
@@ -164,7 +164,7 @@ export function CertificateForm() {
                 </div>
               </FormControl>
               <FormDescription className="text-black/70 text-xs">
-                Enter the email you used during registration.
+                Enter the team name you used during registration.
               </FormDescription>
               <FormMessage className="text-red-600" />
             </FormItem>
