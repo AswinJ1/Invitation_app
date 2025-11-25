@@ -115,7 +115,7 @@ export async function verifyAndGenerateCertificate(data: {
     
     // Dynamic font size calculation for college name
     const maxCollegeNameWidth = width * 0.7;
-    let collegeNameFontSize = 30;
+    let collegeNameFontSize = 20;
     let collegeNameWidth = font.widthOfTextAtSize(formattedCollegeName, collegeNameFontSize);
     
     while (collegeNameWidth > maxCollegeNameWidth && collegeNameFontSize > 20) {
